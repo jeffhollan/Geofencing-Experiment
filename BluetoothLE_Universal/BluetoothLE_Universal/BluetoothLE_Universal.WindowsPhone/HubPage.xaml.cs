@@ -3,13 +3,19 @@ using BluetoothLE_Universal.Data;
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.ApplicationModel.Resources;
+using Windows.Devices.Bluetooth;
+using Windows.Devices.Bluetooth.Rfcomm;
+using Windows.Devices.Enumeration;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Graphics.Display;
+using Windows.Networking.Proximity;
+using Windows.Networking.Sockets;
 using Windows.UI.Core;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
@@ -25,129 +31,184 @@ using Windows.UI.Xaml.Navigation;
 
 namespace BluetoothLE_Universal
 {
-    /// <summary>
-    /// A page that displays a grouped collection of items.
-    /// </summary>
-    public sealed partial class HubPage : Page
-    {
-        private readonly NavigationHelper navigationHelper;
-        private readonly ObservableDictionary defaultViewModel = new ObservableDictionary();
-        private readonly ResourceLoader resourceLoader = ResourceLoader.GetForCurrentView("Resources");
+	/// <summary>
+	/// A page that displays a grouped collection of items.
+	/// </summary>
+	public sealed partial class HubPage : Page
+	{
+		private readonly NavigationHelper navigationHelper;
+		private readonly ObservableDictionary defaultViewModel = new ObservableDictionary();
+		private readonly ResourceLoader resourceLoader = ResourceLoader.GetForCurrentView("Resources");
 
-        public HubPage()
-        {
-            this.InitializeComponent();
+		BluetoothLEDevice currentDevice { get; set; }
+		string deviceName = "Philips AEA1000";
 
-            // Hub is only supported in Portrait orientation
-            DisplayInformation.AutoRotationPreferences = DisplayOrientations.Portrait;
 
-            this.NavigationCacheMode = NavigationCacheMode.Required;
+		public HubPage()
+		{
+			this.InitializeComponent();
 
-            this.navigationHelper = new NavigationHelper(this);
-            this.navigationHelper.LoadState += this.NavigationHelper_LoadState;
-            this.navigationHelper.SaveState += this.NavigationHelper_SaveState;
-        }
+			// Hub is only supported in Portrait orientation
+			DisplayInformation.AutoRotationPreferences = DisplayOrientations.Portrait;
 
-        /// <summary>
-        /// Gets the <see cref="NavigationHelper"/> associated with this <see cref="Page"/>.
-        /// </summary>
-        public NavigationHelper NavigationHelper
-        {
-            get { return this.navigationHelper; }
-        }
+			this.NavigationCacheMode = NavigationCacheMode.Required;
 
-        /// <summary>
-        /// Gets the view model for this <see cref="Page"/>.
-        /// This can be changed to a strongly typed view model.
-        /// </summary>
-        public ObservableDictionary DefaultViewModel
-        {
-            get { return this.defaultViewModel; }
-        }
+			this.navigationHelper = new NavigationHelper(this);
+			this.navigationHelper.LoadState += this.NavigationHelper_LoadState;
+			this.navigationHelper.SaveState += this.NavigationHelper_SaveState;
+		}
 
-        /// <summary>
-        /// Populates the page with content passed during navigation.  Any saved state is also
-        /// provided when recreating a page from a prior session.
-        /// </summary>
-        /// <param name="sender">
-        /// The source of the event; typically <see cref="NavigationHelper"/>
-        /// </param>
-        /// <param name="e">Event data that provides both the navigation parameter passed to
-        /// <see cref="Frame.Navigate(Type, object)"/> when this page was initially requested and
-        /// a dictionary of state preserved by this page during an earlier
-        /// session.  The state will be null the first time a page is visited.</param>
-        private async void NavigationHelper_LoadState(object sender, LoadStateEventArgs e)
-        {
-            // TODO: Create an appropriate data model for your problem domain to replace the sample data
-            var sampleDataGroups = await SampleDataSource.GetGroupsAsync();
-            this.DefaultViewModel["Groups"] = sampleDataGroups;
-        }
+		/// <summary>
+		/// Gets the <see cref="NavigationHelper"/> associated with this <see cref="Page"/>.
+		/// </summary>
+		public NavigationHelper NavigationHelper
+		{
+			get { return this.navigationHelper; }
+		}
 
-        /// <summary>
-        /// Preserves state associated with this page in case the application is suspended or the
-        /// page is discarded from the navigation cache.  Values must conform to the serialization
-        /// requirements of <see cref="SuspensionManager.SessionState"/>.
-        /// </summary>
-        /// <param name="sender">The source of the event; typically <see cref="NavigationHelper"/></param>
-        /// <param name="e">Event data that provides an empty dictionary to be populated with
-        /// serializable state.</param>
-        private void NavigationHelper_SaveState(object sender, SaveStateEventArgs e)
-        {
-            // TODO: Save the unique state of the page here.
-        }
+		/// <summary>
+		/// Gets the view model for this <see cref="Page"/>.
+		/// This can be changed to a strongly typed view model.
+		/// </summary>
+		public ObservableDictionary DefaultViewModel
+		{
+			get { return this.defaultViewModel; }
+		}
 
-        /// <summary>
-        /// Shows the details of a clicked group in the <see cref="SectionPage"/>.
-        /// </summary>
-        /// <param name="sender">The source of the click event.</param>
-        /// <param name="e">Details about the click event.</param>
-        private void GroupSection_ItemClick(object sender, ItemClickEventArgs e)
-        {
-            var groupId = ((SampleDataGroup)e.ClickedItem).UniqueId;
-            if (!Frame.Navigate(typeof(SectionPage), groupId))
-            {
-                throw new Exception(this.resourceLoader.GetString("NavigationFailedExceptionMessage"));
-            }
-        }
+		/// <summary>
+		/// Populates the page with content passed during navigation.  Any saved state is also
+		/// provided when recreating a page from a prior session.
+		/// </summary>
+		/// <param name="sender">
+		/// The source of the event; typically <see cref="NavigationHelper"/>
+		/// </param>
+		/// <param name="e">Event data that provides both the navigation parameter passed to
+		/// <see cref="Frame.Navigate(Type, object)"/> when this page was initially requested and
+		/// a dictionary of state preserved by this page during an earlier
+		/// session.  The state will be null the first time a page is visited.</param>
+		private async void NavigationHelper_LoadState(object sender, LoadStateEventArgs e)
+		{
+			// TODO: Create an appropriate data model for your problem domain to replace the sample data
+			var sampleDataGroups = await SampleDataSource.GetGroupsAsync();
+			this.DefaultViewModel["Groups"] = sampleDataGroups;
 
-        /// <summary>
-        /// Shows the details of an item clicked on in the <see cref="ItemPage"/>
-        /// </summary>
-        /// <param name="sender">The source of the click event.</param>
-        /// <param name="e">Defaults about the click event.</param>
-        private void ItemView_ItemClick(object sender, ItemClickEventArgs e)
-        {
-            var itemId = ((SampleDataItem)e.ClickedItem).UniqueId;
-            if (!Frame.Navigate(typeof(ItemPage), itemId))
-            {
-                throw new Exception(this.resourceLoader.GetString("NavigationFailedExceptionMessage"));
-            }
-        }
 
-        #region NavigationHelper registration
+		}
 
-        /// <summary>
-        /// The methods provided in this section are simply used to allow
-        /// NavigationHelper to respond to the page's navigation methods.
-        /// <para>
-        /// Page specific logic should be placed in event handlers for the
-        /// <see cref="NavigationHelper.LoadState"/>
-        /// and <see cref="NavigationHelper.SaveState"/>.
-        /// The navigation parameter is available in the LoadState method
-        /// in addition to page state preserved during an earlier session.
-        /// </para>
-        /// </summary>
-        /// <param name="e">Event data that describes how this page was reached.</param>
-        protected override void OnNavigatedTo(NavigationEventArgs e)
-        {
-            this.navigationHelper.OnNavigatedTo(e);
-        }
+		/// <summary>
+		/// Preserves state associated with this page in case the application is suspended or the
+		/// page is discarded from the navigation cache.  Values must conform to the serialization
+		/// requirements of <see cref="SuspensionManager.SessionState"/>.
+		/// </summary>
+		/// <param name="sender">The source of the event; typically <see cref="NavigationHelper"/></param>
+		/// <param name="e">Event data that provides an empty dictionary to be populated with
+		/// serializable state.</param>
+		private void NavigationHelper_SaveState(object sender, SaveStateEventArgs e)
+		{
+			// TODO: Save the unique state of the page here.
+		}
 
-        protected override void OnNavigatedFrom(NavigationEventArgs e)
-        {
-            this.navigationHelper.OnNavigatedFrom(e);
-        }
+		/// <summary>
+		/// Shows the details of a clicked group in the <see cref="SectionPage"/>.
+		/// </summary>
+		/// <param name="sender">The source of the click event.</param>
+		/// <param name="e">Details about the click event.</param>
+		private void GroupSection_ItemClick(object sender, ItemClickEventArgs e)
+		{
+			var groupId = ((SampleDataGroup)e.ClickedItem).UniqueId;
+			if (!Frame.Navigate(typeof(SectionPage), groupId))
+			{
+				throw new Exception(this.resourceLoader.GetString("NavigationFailedExceptionMessage"));
+			}
+		}
 
-        #endregion
-    }
+		/// <summary>
+		/// Shows the details of an item clicked on in the <see cref="ItemPage"/>
+		/// </summary>
+		/// <param name="sender">The source of the click event.</param>
+		/// <param name="e">Defaults about the click event.</param>
+		private void ItemView_ItemClick(object sender, ItemClickEventArgs e)
+		{
+			var itemId = ((SampleDataItem)e.ClickedItem).UniqueId;
+			if (!Frame.Navigate(typeof(ItemPage), itemId))
+			{
+				throw new Exception(this.resourceLoader.GetString("NavigationFailedExceptionMessage"));
+			}
+		}
+
+		#region NavigationHelper registration
+
+		/// <summary>
+		/// The methods provided in this section are simply used to allow
+		/// NavigationHelper to respond to the page's navigation methods.
+		/// <para>
+		/// Page specific logic should be placed in event handlers for the
+		/// <see cref="NavigationHelper.LoadState"/>
+		/// and <see cref="NavigationHelper.SaveState"/>.
+		/// The navigation parameter is available in the LoadState method
+		/// in addition to page state preserved during an earlier session.
+		/// </para>
+		/// </summary>
+		/// <param name="e">Event data that describes how this page was reached.</param>
+		protected override async void OnNavigatedTo(NavigationEventArgs e)
+		{
+			this.navigationHelper.OnNavigatedTo(e);
+
+			foreach (DeviceInformation di in await DeviceInformation.FindAllAsync(BluetoothLEDevice.GetDeviceSelector()))
+			{
+				BluetoothLEDevice bleDevice = await BluetoothLEDevice.FromIdAsync(di.Id);
+				Debug.WriteLine("Device: {0}", bleDevice.Name);
+				if (bleDevice.Name == deviceName)
+				{
+					currentDevice = bleDevice;
+					break;
+				}
+			}
+
+			PeerInformation pi = null;
+
+			foreach (DeviceInformation di in await DeviceInformation.FindAllAsync(BluetoothDevice.GetDeviceSelector()))
+			{
+				BluetoothDevice bleDevice = await BluetoothDevice.FromIdAsync(di.Id);
+				Debug.WriteLine("Device (nonLE): {0}", bleDevice.Name);
+				if (bleDevice.Name == "MSFT Band 23:61")
+				{
+					var services = bleDevice.RfcommServices;
+					foreach (var s in services)
+					{
+						Debug.WriteLine("Band Service: {0}", s.ConnectionServiceName);
+
+						PeerFinder.AlternateIdentities["Bluetooth:PAIRED"] = "";
+						var available_devices = await PeerFinder.FindAllPeersAsync();
+						if (available_devices.Count > 0)
+						{
+							foreach (var device in available_devices)
+							{
+								if (device.DisplayName == "MSFT Band 23:61")
+								{
+									pi = device;
+								}
+								Debug.WriteLine("Found disc device: {0}", device.DisplayName);
+							}
+							//PeerInformation pi = 
+						}
+						StreamSocket socket = new StreamSocket();
+						if (pi != null)
+							await socket.ConnectAsync(pi.HostName, "1");
+				
+
+					}
+					//currentDevice = bleDevice;
+					break;
+				}
+			}
+		}
+
+		protected override void OnNavigatedFrom(NavigationEventArgs e)
+		{
+			this.navigationHelper.OnNavigatedFrom(e);
+		}
+
+		#endregion
+	}
 }
