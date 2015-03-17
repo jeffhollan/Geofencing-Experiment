@@ -10,133 +10,91 @@ using Windows.UI.Notifications;
 
 namespace Geofencing.Task
 {
-	public sealed class GeoTask : IBackgroundTask
-	{
-		static string TaskName = "MyLocationTask";
+    public sealed class GeoTask : IBackgroundTask
+    {
+        static string TaskName = "MyLocationTask";
 
-		public async static void Register()
-		{
-			if (!IsTaskRegistered())
-			{
-				var result = await BackgroundExecutionManager.RequestAccessAsync();
-				var builder = new BackgroundTaskBuilder();
+        public async static void Register()
+        {
+            if (!IsTaskRegistered())
+            {
+                var result = await BackgroundExecutionManager.RequestAccessAsync();
+                var builder = new BackgroundTaskBuilder();
 
-				builder.Name = TaskName;
-				builder.TaskEntryPoint = typeof(GeoTask).FullName;
-				builder.SetTrigger(new LocationTrigger(LocationTriggerType.Geofence));
+                builder.Name = TaskName;
+                builder.TaskEntryPoint = typeof(GeoTask).FullName;
+                builder.SetTrigger(new LocationTrigger(LocationTriggerType.Geofence));
 
-				builder.Register();
+                builder.Register();
 
-			}
-		}
+            }
+        }
 
-		public static void Unregister()
-		{
-			var entry = BackgroundTaskRegistration.AllTasks.FirstOrDefault(kvp => kvp.Value.Name == TaskName);
-			if (entry.Value != null)
-			{
-				entry.Value.Unregister(true);
-			}
-		}
+        public static void Unregister()
+        {
+            var entry = BackgroundTaskRegistration.AllTasks.FirstOrDefault(kvp => kvp.Value.Name == TaskName);
+            if (entry.Value != null)
+            {
+                entry.Value.Unregister(true);
+            }
+        }
 
-		public static bool IsTaskRegistered()
-		{
-			var taskRegistered = false;
-			var entry = BackgroundTaskRegistration.AllTasks.FirstOrDefault(kvp => kvp.Value.Name == TaskName);
+        public static bool IsTaskRegistered()
+        {
+            var taskRegistered = false;
+            var entry = BackgroundTaskRegistration.AllTasks.FirstOrDefault(kvp => kvp.Value.Name == TaskName);
 
-			if (entry.Value != null)
-				taskRegistered = true;
+            if (entry.Value != null)
+                taskRegistered = true;
 
-			return taskRegistered;
-		}
-		public void Run(IBackgroundTaskInstance taskInstance)
-		{
-			Debug.WriteLine("Background triggered.");
-			var reports = GeofenceMonitor.Current.ReadReports();
-			var report = reports.FirstOrDefault(r => (r.Geofence.Id == "Home1") && (r.NewState == GeofenceState.Entered));
+            return taskRegistered;
+        }
+        public void Run(IBackgroundTaskInstance taskInstance)
+        {
+            var reports = GeofenceMonitor.Current.ReadReports();
 
-			if (report == null) return;
+            var report = reports.FirstOrDefault(r => (r.Geofence.Id == "Home1") && (r.NewState == GeofenceState.Entered));
 
-			var toastXmlContent = ToastNotificationManager.GetTemplateContent(ToastTemplateType.ToastText02);
-			var txtNodes = toastXmlContent.GetElementsByTagName("text");
-			txtNodes[0].AppendChild(toastXmlContent.CreateTextNode("Home1 Toast Entered!"));
-			txtNodes[1].AppendChild(toastXmlContent.CreateTextNode(report.Geofence.Id));
+            if (report != null)
+                ToastNotify("Home1 Entered", report.Geofence.Id);
 
-			var toast = new ToastNotification(toastXmlContent);
-			var toastNotifier = ToastNotificationManager.CreateToastNotifier();
-			toastNotifier.Show(toast);
+            report = reports.FirstOrDefault(r => (r.Geofence.Id == "Work1") && (r.NewState == GeofenceState.Entered));
 
+            if (report != null)
+                ToastNotify("Work1 Entered", report.Geofence.Id);
+        
+            report = reports.FirstOrDefault(r => (r.Geofence.Id == "Travel1") && (r.NewState == GeofenceState.Entered));
 
-			report = reports.FirstOrDefault(r => (r.Geofence.Id == "Work1") && (r.NewState == GeofenceState.Entered));
+            if (report != null)
+                ToastNotify("Travel1 Entered", report.Geofence.Id);
 
-			if (report == null) return;
+            report = reports.FirstOrDefault(r => (r.Geofence.Id == "Work1") && (r.NewState == GeofenceState.Exited));
 
-			toastXmlContent = ToastNotificationManager.GetTemplateContent(ToastTemplateType.ToastText02);
-			txtNodes = toastXmlContent.GetElementsByTagName("text");
-			txtNodes[0].AppendChild(toastXmlContent.CreateTextNode("Work1 Toast Entered!"));
-			txtNodes[1].AppendChild(toastXmlContent.CreateTextNode(report.Geofence.Id));
+            if (report != null)
+                ToastNotify("Work1 Exited", report.Geofence.Id);
 
-			toast = new ToastNotification(toastXmlContent);
-			toastNotifier = ToastNotificationManager.CreateToastNotifier();
-			toastNotifier.Show(toast);
+            report = reports.FirstOrDefault(r => (r.Geofence.Id == "Travel1") && (r.NewState == GeofenceState.Exited));
 
+            if (report != null)
+                ToastNotify("Travel1 Exited", report.Geofence.Id);
 
-			report = reports.FirstOrDefault(r => (r.Geofence.Id == "Travel1") && (r.NewState == GeofenceState.Entered));
+            report = reports.FirstOrDefault(r => (r.Geofence.Id == "Home1") && (r.NewState == GeofenceState.Exited));
 
-			if (report == null) return;
+            if (report != null)
+                ToastNotify("Home1 Exited", report.Geofence.Id);
 
-			toastXmlContent = ToastNotificationManager.GetTemplateContent(ToastTemplateType.ToastText02);
-			txtNodes = toastXmlContent.GetElementsByTagName("text");
-			txtNodes[0].AppendChild(toastXmlContent.CreateTextNode("Travel1 Toast Entered!"));
-			txtNodes[1].AppendChild(toastXmlContent.CreateTextNode(report.Geofence.Id));
+        }
 
-			toast = new ToastNotification(toastXmlContent);
-			toastNotifier = ToastNotificationManager.CreateToastNotifier();
-			toastNotifier.Show(toast);
+        private void ToastNotify(string txt, string geoId)
+        {
+            var toastXmlContent = ToastNotificationManager.GetTemplateContent(ToastTemplateType.ToastText02);
+            var txtNodes = toastXmlContent.GetElementsByTagName("text");
+            txtNodes[0].AppendChild(toastXmlContent.CreateTextNode(txt));
+            txtNodes[1].AppendChild(toastXmlContent.CreateTextNode(geoId));
 
-
-			report = reports.FirstOrDefault(r => (r.Geofence.Id == "Work1") && (r.NewState == GeofenceState.Exited));
-
-			if (report == null) return;
-
-			toastXmlContent = ToastNotificationManager.GetTemplateContent(ToastTemplateType.ToastText02);
-			txtNodes = toastXmlContent.GetElementsByTagName("text");
-			txtNodes[0].AppendChild(toastXmlContent.CreateTextNode("Work1 Toast Exited!"));
-			txtNodes[1].AppendChild(toastXmlContent.CreateTextNode(report.Geofence.Id));
-
-			toast = new ToastNotification(toastXmlContent);
-			toastNotifier = ToastNotificationManager.CreateToastNotifier();
-			toastNotifier.Show(toast);
-
-
-			report = reports.FirstOrDefault(r => (r.Geofence.Id == "Travel1") && (r.NewState == GeofenceState.Exited));
-
-			if (report == null) return;
-
-			toastXmlContent = ToastNotificationManager.GetTemplateContent(ToastTemplateType.ToastText02);
-			txtNodes = toastXmlContent.GetElementsByTagName("text");
-			txtNodes[0].AppendChild(toastXmlContent.CreateTextNode("Travel1 Toast Exited!"));
-			txtNodes[1].AppendChild(toastXmlContent.CreateTextNode(report.Geofence.Id));
-
-			toast = new ToastNotification(toastXmlContent);
-			toastNotifier = ToastNotificationManager.CreateToastNotifier();
-			toastNotifier.Show(toast);
-
-			report = reports.FirstOrDefault(r => (r.Geofence.Id == "Home1") && (r.NewState == GeofenceState.Exited));
-
-			if (report == null) return;
-
-			toastXmlContent = ToastNotificationManager.GetTemplateContent(ToastTemplateType.ToastText02);
-			txtNodes = toastXmlContent.GetElementsByTagName("text");
-			txtNodes[0].AppendChild(toastXmlContent.CreateTextNode("Home1 Toast Exited!"));
-			txtNodes[1].AppendChild(toastXmlContent.CreateTextNode(report.Geofence.Id));
-
-			toast = new ToastNotification(toastXmlContent);
-			toastNotifier = ToastNotificationManager.CreateToastNotifier();
-			toastNotifier.Show(toast);
-
-
-
-		}
-	}
+            var toast = new ToastNotification(toastXmlContent);
+            var toastNotifier = ToastNotificationManager.CreateToastNotifier();
+            toastNotifier.Show(toast);
+        }
+    }
 }
