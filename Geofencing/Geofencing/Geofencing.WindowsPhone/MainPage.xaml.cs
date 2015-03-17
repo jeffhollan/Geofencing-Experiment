@@ -129,11 +129,11 @@ namespace Geofencing
 			mask |= MonitoredGeofenceStates.Entered;
 			mask |= MonitoredGeofenceStates.Exited;
 
-			TimeSpan ts = new TimeSpan(0, 0, 5);
+			TimeSpan ts = new TimeSpan(0, 0, 1);
 			if (id == "Travel1")
 			{
 				Debug.WriteLine("I'm travel 1 son!");
-				ts = new TimeSpan(0, 0, 0);
+				ts = new TimeSpan(0, 0, 0, 1);
 
 			}
 			var geofence = new Geofence(id, geocircle, mask, false, ts);
@@ -171,7 +171,7 @@ namespace Geofencing
 			//	Debug.WriteLine(ex.ToString());
 			//}
 
-			CreateGeofence("Home1", 47.533462, -121.854213, 300);
+			CreateGeofence("Home1", 47.533462, -121.854213, 80);
 		}
 
 		private void listGeo_Click(object sender, RoutedEventArgs e)
@@ -197,7 +197,7 @@ namespace Geofencing
 
 		private void workGeo_Click(object sender, RoutedEventArgs e)
 		{
-			CreateGeofence("Work1", 47.676815, -122.095711, 300);
+			CreateGeofence("Work1", 47.676815, -122.095711, 80);
 		}
 
 		private void travelGeo_Click(object sender, RoutedEventArgs e)
