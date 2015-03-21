@@ -21,6 +21,7 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using RestSharp.Portable;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
 
@@ -218,20 +219,20 @@ namespace Geofencing
 			GeoTask.Unregister();
 		}
 
-		private void pushbullet_Click(object sender, RoutedEventArgs e)
+		private async void pushbullet_Click(object sender, RoutedEventArgs e)
 		{
-			//var client = new RestClient("http://api.pushbullet.com/v2/");
-			//var request = new RestRequest("pushes");
-			//request.AddParameter("type", "note");
-			//request.AddParameter("title", "Testing");
-			//request.AddParameter("body", "This was sent from the WP app");
+			var client = new RestClient("http://api.pushbullet.com/v2/");
+			var request = new RestRequest("pushes");
+			request.AddParameter("type", "note");
+			request.AddParameter("title", "Testing");
+			request.AddParameter("body", "This was sent from the WP app");
 
-			//request.AddHeader("Authorization", string.Format("Bearer {0}", Push_API_KEY));
+			request.AddHeader("Authorization", string.Format("Bearer {0}", Push_API_KEY));
 
-			//client.Execute(request);
+			RestResponse response = await client.Execute(request) as RestResponse;
 
 			//return response.Data;
-			//Debug.WriteLine("Response: {0}", response.StatusCode.ToString());
+			Debug.WriteLine("Response: {0}", response.StatusCode.ToString());
 		}
 
 		
