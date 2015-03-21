@@ -34,6 +34,9 @@ namespace Geofencing
 		
 		private Geolocator geolocator;
 		private CoreDispatcher _cd;
+
+		private const string Push_API_KEY = "VqxmF1tRVnFzGJpsg46AS19IHm5RJCM6";
+
 		public MainPage()
 		{
 			this.InitializeComponent();
@@ -214,5 +217,23 @@ namespace Geofencing
 		{
 			GeoTask.Unregister();
 		}
+
+		private void pushbullet_Click(object sender, RoutedEventArgs e)
+		{
+			//var client = new RestClient("http://api.pushbullet.com/v2/");
+			//var request = new RestRequest("pushes");
+			//request.AddParameter("type", "note");
+			//request.AddParameter("title", "Testing");
+			//request.AddParameter("body", "This was sent from the WP app");
+
+			//request.AddHeader("Authorization", string.Format("Bearer {0}", Push_API_KEY));
+
+			//client.Execute(request);
+
+			//return response.Data;
+			//Debug.WriteLine("Response: {0}", response.StatusCode.ToString());
+		}
+
+		
 	}
 }
