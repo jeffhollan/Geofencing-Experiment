@@ -175,7 +175,7 @@ namespace Geofencing
 			//	Debug.WriteLine(ex.ToString());
 			//}
 
-			CreateGeofence("Home1", 47.533533, -121.854226, 80);
+			CreateGeofence("Home1", 47.533533, -121.854226, 250);
 		}
 
 		private void listGeo_Click(object sender, RoutedEventArgs e)
@@ -201,7 +201,7 @@ namespace Geofencing
 
 		private void workGeo_Click(object sender, RoutedEventArgs e)
 		{
-			CreateGeofence("Work1", 47.676781, -122.096187, 80);
+			CreateGeofence("Work1", 47.676781, -122.096187, 100);
 		}
 
 		private void travelGeo_Click(object sender, RoutedEventArgs e)
@@ -219,26 +219,27 @@ namespace Geofencing
 			GeoTask.Unregister();
 		}
 
-		private async void pushbullet_Click(object sender, RoutedEventArgs e)
+		async private void pushbullet_Click(object sender, RoutedEventArgs e)
 		{
-			//var client = new RestClient("http://api.pushbullet.com/v2/");
-			//var request = new RestRequest("pushes");
-			//request.AddParameter("type", "note");
-			//request.AddParameter("title", "Testing");
-			//request.AddParameter("body", "This was sent from the WP app");
+			var client = new RestClient("https://api.pushbullet.com/v2");
+			var request = new RestRequest("pushes");
+			request.Method = System.Net.Http.HttpMethod.Post;
+			request.AddParameter("type", "note");
+			request.AddParameter("title", "Testing");
+			request.AddParameter("body", "This was sent from the WP app");
 
-			//request.AddHeader("Authorization", string.Format("Bearer {0}", Push_API_KEY));
-			//try
-			//{
-			//	RestResponse response = await client.Execute(request) as RestResponse;
-			//	Debug.WriteLine("Response: {0}", response.StatusCode.ToString());
+			request.AddHeader("Authorization", "Bearer VqxmF1tRVnFzGJpsg46AS19IHm5RJCM6");
+			try
+			{
+				var response = await client.Execute(request) as RestResponse;
+				Debug.WriteLine("Response: {0}", response.StatusCode.ToString());
 
-			//}
-			//catch (Exception ex)
-			//{
-			//	Debug.WriteLine(ex.ToString());
-			//}
-			////return response.Data;
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine(ex.ToString());
+			}
+			//////return response.Data;
 		}
 
 		
