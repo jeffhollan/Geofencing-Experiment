@@ -154,27 +154,8 @@ namespace Geofencing
 
 		private async void addGeo_Click(object sender, RoutedEventArgs e)
 		{
-			//Geolocator geolocater = new Geolocator();
-			//geolocater.DesiredAccuracyInMeters = 50;
 
-			//try
-			//{
-			//	Geoposition geoposition = await geolocater.GetGeopositionAsync(
-			//		maximumAge: TimeSpan.FromMinutes(5),
-			//		timeout: TimeSpan.FromSeconds(10)
-			//		);
-
-
-
-			//	Debug.WriteLine("GPS: {0} , {1}", geoposition.Coordinate.Point.Position.Latitude.ToString("0.00"), geoposition.Coordinate.Point.Position.Longitude.ToString("0.00"));
-			//	CreateGeofence("Geofence1", geoposition.Coordinate.Point.Position.Latitude, geoposition.Coordinate.Point.Position.Longitude, 150);
-			//	GeoTask.Register();
-			//}
-			//catch (Exception ex)
-			//{
-			//	Debug.WriteLine(ex.ToString());
-			//}
-
+			
 			CreateGeofence("Home1", 47.533533, -121.854226, 250);
 		}
 
