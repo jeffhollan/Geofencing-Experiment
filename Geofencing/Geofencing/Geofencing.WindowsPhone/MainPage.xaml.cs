@@ -36,7 +36,7 @@ namespace Geofencing
 		private Geolocator geolocator;
 		private CoreDispatcher _cd;
 
-		private const string Push_API_KEY = "VqxmF1tRVnFzGJpsg46AS19IHm5RJCM6";
+		private const string Push_API_KEY = "{PUSH BULLET API}";
 
 		public MainPage()
 		{

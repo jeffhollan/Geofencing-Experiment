@@ -14,8 +14,11 @@ namespace Geofencing.Task
     public sealed class GeoTask : IBackgroundTask
     {
         static string TaskName = "MyLocationTask";
+		const string PushBulletAPI = "{PUT API KEY HERE}";
 
-        public async static void Register()
+
+
+		public async static void Register()
         {
             if (!IsTaskRegistered())
             {
@@ -112,7 +115,7 @@ namespace Geofencing.Task
 			request.AddParameter("title", title);
 			request.AddParameter("body", body);
 
-			request.AddHeader("Authorization", "Bearer VqxmF1tRVnFzGJpsg46AS19IHm5RJCM6");
+			request.AddHeader("Authorization", "Bearer " + PushBulletAPI);
 			try
 			{
 				var response = await client.Execute(request) as RestResponse;
