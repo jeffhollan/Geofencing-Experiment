@@ -156,7 +156,7 @@ namespace Geofencing
 		{
 
 			
-			CreateGeofence("Home1", 47.533533, -121.854226, 250);
+			CreateGeofence("Home1", 1, -2, 250);
 		}
 
 		private void listGeo_Click(object sender, RoutedEventArgs e)
@@ -182,12 +182,12 @@ namespace Geofencing
 
 		private void workGeo_Click(object sender, RoutedEventArgs e)
 		{
-			CreateGeofence("Work1", 47.676781, -122.096187, 100);
+			CreateGeofence("Work1", 1, -2, 100);
 		}
 
 		private void travelGeo_Click(object sender, RoutedEventArgs e)
 		{
-			CreateGeofence("Travel1", 47.536530, -121.832306, 300);
+			CreateGeofence("Travel1", 1, -2, 300);
 		}
 
 		private void regTask_Click(object sender, RoutedEventArgs e)
